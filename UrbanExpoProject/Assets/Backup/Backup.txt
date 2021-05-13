@@ -1,0 +1,249 @@
+#region Depth first search
+//private List<int> SearchPathRecursively(WorldGridDirection lastMoveDirection, AStarPathNode currentNode, Vector3Int targetGridPos)
+//{
+//    // Check if Current node is the target move grid
+//    List<int> shortestIndexChild = new List<int>();
+//    if (currentNode.GridCoordinate == targetGridPos)
+//    {
+//        shortestIndexChild.Add(currentNode.ChildOfParentIndex);
+//        return shortestIndexChild;
+//    }
+
+//    // Add after grid move information
+//    List<AStarPathNode> childList = new List<AStarPathNode>();
+//    if (lastMoveDirection.GetOpposite() != WorldGridDirection.Up)
+//        SortedInsertMoveDir(currentNode, WorldGridDirection.Up, ref childList, targetGridPos);
+
+//    if (lastMoveDirection.GetOpposite() != WorldGridDirection.Down)
+//        SortedInsertMoveDir(currentNode, WorldGridDirection.Down, ref childList, targetGridPos);
+
+//    if (lastMoveDirection.GetOpposite() != WorldGridDirection.Right)
+//        SortedInsertMoveDir(currentNode, WorldGridDirection.Right, ref childList, targetGridPos);
+
+//    if (lastMoveDirection.GetOpposite() != WorldGridDirection.Left)
+//        SortedInsertMoveDir(currentNode, WorldGridDirection.Left, ref childList, targetGridPos);
+
+//    if (lastMoveDirection.GetOpposite() != WorldGridDirection.UpperRight)
+//        SortedInsertMoveDir(currentNode, WorldGridDirection.UpperRight, ref childList, targetGridPos);
+
+//    if (lastMoveDirection.GetOpposite() != WorldGridDirection.UpperLeft)
+//        SortedInsertMoveDir(currentNode, WorldGridDirection.UpperLeft, ref childList, targetGridPos);
+
+//    if (lastMoveDirection.GetOpposite() != WorldGridDirection.LowerRight)
+//        SortedInsertMoveDir(currentNode, WorldGridDirection.LowerRight, ref childList, targetGridPos);
+
+//    if (lastMoveDirection.GetOpposite() != WorldGridDirection.LowerLeft)
+//        SortedInsertMoveDir(currentNode, WorldGridDirection.LowerLeft, ref childList, targetGridPos);
+
+//    // Insert all child into parent
+//    //string s = $"Current Node Childs {currentNode.GridCoordinate}: ";
+//    foreach (AStarPathNode node in childList)
+//    {
+//        currentNode.AddChildNode(node);
+//        //s += $"{node.GridCoordinate} {node.PreviousDirectionMove} {node.distance}";
+//    }
+//    //Debug.Log(s);
+
+//    // Check each path in child list from the left most shortest distance and right most fartest distance
+//    for (int i = 0; i < childList.Count; i++)
+//    {
+//        AStarPathNode node = childList[i];
+//        List<int> childPath = SearchPathRecursively(node.PreviousDirectionMove, node, targetGridPos);
+//        if (childPath.Count != 0)
+//        {
+//            shortestIndexChild.Add(currentNode.ChildOfParentIndex);
+//            shortestIndexChild.AddRange(childPath);
+//            return shortestIndexChild;
+//        }
+//    }
+
+//    // Current node path is dead end, Check target grid found
+//    if (targetGridPos == currentNode.GridCoordinate)
+//    {
+//        shortestIndexChild.Add(currentNode.ChildOfParentIndex);
+//        return shortestIndexChild;
+//    }
+
+//    shortestIndexChild.Clear();
+//    return shortestIndexChild;
+//}
+
+//private void SortedInsertMoveDir(AStarPathNode currentNode, WorldGridDirection gridDir, ref List<AStarPathNode> nodeList, Vector3Int targetGridPos)
+//{
+//    // Check tile if path exists
+//    Vector3Int gridAfterMove = currentNode.GridCoordinate + world.map.GetGridDirection(gridDir);
+//    if (world.FloorTilemap.GetTile(gridAfterMove) == null)
+//        return;
+
+//    // Check if grid already visited, to cancel a path loop
+//    if (currentNode.isPathVisited(gridAfterMove))
+//        return;
+
+//    // Create new path node
+//    float distanceAfterMove = Vector3.Distance(world.GridToWorldPosition(gridAfterMove), world.GridToWorldPosition(targetGridPos));
+//    distanceAfterMove += gridDir.IsDiagonalMove() ? Mathf.Sqrt(2) : 1;
+//    AStarPathNode createdNode = new AStarPathNode(currentNode, gridAfterMove, distanceAfterMove);
+//    createdNode.PreviousDirectionMove = gridDir;
+
+//    // Check if currently list is empty
+//    if (nodeList.Count == 0)
+//    {
+//        nodeList.Add(createdNode);
+//        return;
+//    }
+
+//    // Sort list of nodes
+//    for (int i = 0; i < nodeList.Count; i++)
+//    {
+//        AStarPathNode node = nodeList[i];
+//        if (createdNode.targetDistance < node.targetDistance)
+//        {
+//            nodeList.Insert(i, createdNode);
+//            return;
+//        }
+//    }
+//}
+#endregion
+
+#region Depth First Search
+//List<int> indexProcedure = SearchPathRecursively(WorldGridDirection.Zero, rootNode, targetGridPos);
+
+//// Process and Convert direction, the shortest path indexes to target path in world position
+//List<Vector3> targetPath = new List<Vector3>();
+//WorldGridDirection lastDirection = WorldGridDirection.Zero;
+//float timesBy = 1f;
+//AStarPathNode temp = rootNode;
+//while (indexProcedure.Count > 0)
+//{
+//    // Get index
+//    int index = indexProcedure[0];
+//    indexProcedure.RemoveAt(0);
+//    if (index < 0) continue;
+
+//    // Get next child node shortest path
+//    AStarPathNode node = temp.GetChildNode(index);
+//    if (node.PreviousDirectionMove != WorldGridDirection.Zero)
+//    {
+//        if (lastDirection != node.PreviousDirectionMove)
+//        {
+//            // Convert direction to target position
+//            Vector3Int playerGridCoord = world.WorldToGridPosition(startWorldPos);
+//            Vector3 targetPos = world.GridToWorldPosition(playerGridCoord) +
+//                new Vector3(world.WorldPivotOffset.x, world.WorldPivotOffset.y);
+//            Vector2 dir = world.map.GetDirection(lastDirection);
+//            startWorldPos = targetPos + new Vector3(dir.x, dir.y) * timesBy;
+//            targetPath.Add(startWorldPos);
+
+//            // Change to new direction
+//            lastDirection = node.PreviousDirectionMove;
+//            timesBy = 1f;
+//        }
+//        else
+//        {
+//            timesBy++;
+//            if (indexProcedure.Count == 0)
+//            {
+//                // Convert direction to target position
+//                Vector3Int playerGridCoord = world.WorldToGridPosition(startWorldPos);
+//                Vector3 targetPos = world.GridToWorldPosition(playerGridCoord) +
+//                    new Vector3(world.WorldPivotOffset.x, world.WorldPivotOffset.y);
+//                Vector2 dir = world.map.GetDirection(lastDirection);
+//                startWorldPos = targetPos + new Vector3(dir.x, dir.y) * timesBy;
+//                targetPath.Add(startWorldPos);
+//            }
+//        }
+//    }
+
+//    // Next go to child node state
+//    temp = node;
+//}
+
+//return targetPath;
+#endregion
+
+/// <summary>
+/// Path node to implement A* Algorithm for path finding problem
+/// </summary>
+public class AStarPathNode
+{
+    private AStarPathNode parent;
+    private List<AStarPathNode> childs = new List<AStarPathNode>();
+    //private HashSet<string> visitedCoordinate = new HashSet<string>();
+
+    private Vector3Int gridCoord;
+    private int childOfParentIndex = -1; // Means no parent at all, check if parent is null
+    private WorldGridDirection previousDirection = WorldGridDirection.Zero;
+    private float targetDistance;
+    private float moveDistance;
+    public bool isOpen = true;
+
+    #region Properties
+    public AStarPathNode Parent => parent;
+    public Vector3Int GridCoordinate => gridCoord;
+    public int ChildOfParentIndex
+    {
+        set => childOfParentIndex = value;
+        get => parent == null ? -1 : childOfParentIndex;
+    }
+    public WorldGridDirection PreviousDirectionMove
+    {
+        set => previousDirection = value;
+        get => parent == null ? WorldGridDirection.Zero : previousDirection;
+    }
+    public int ChildCount => childs.Count;
+    public float Cost => targetDistance + moveDistance;
+    #endregion
+
+    public AStarPathNode(AStarPathNode parent, Vector3Int gridCoord, float targetDistance, float moveDistance)
+    {
+        this.parent = parent;
+        this.gridCoord = gridCoord;
+        this.targetDistance = targetDistance;
+        this.moveDistance = moveDistance;
+
+        #region Depth First Search
+        //// Insert all visited coordinate
+        //visitedCoordinate.Add($"XYZ({gridCoord.x}, {gridCoord.y}, {gridCoord.z})");
+        //AStarPathNode temp = parent;
+        //while (temp != null)
+        //{
+        //    visitedCoordinate.Add($"XYZ({temp.GridCoordinate.x}, {temp.GridCoordinate.y}, {temp.GridCoordinate.z})");
+        //    temp = temp.Parent;
+        //}
+        #endregion
+    }
+
+    public void AddChildNode(AStarPathNode childNode)
+    {
+        childs.Add(childNode);
+        childNode.ChildOfParentIndex = childs.Count - 1;
+    }
+
+    public AStarPathNode GetChildNode(int index)
+    {
+        if (index >= childs.Count)
+            return null;
+
+        return childs[index];
+    }
+
+    #region Depth First Search
+    //public bool isPathVisited(Vector3Int gridCoordinate)
+    //{
+    //    string coordinate = $"XYZ({gridCoordinate.x}, {gridCoordinate.y}, {gridCoordinate.z})";
+    //    if (visitedCoordinate.Contains(coordinate))
+    //        return true;
+
+    //    return false;
+    //}
+
+    //public bool isPathVisited(AStarPathNode pathNode)
+    //{
+    //    string coordinate = $"XYZ({pathNode.GridCoordinate.x}, {pathNode.GridCoordinate.y}, {pathNode.GridCoordinate.z})";
+    //    if (visitedCoordinate.Contains(coordinate))
+    //        return true;
+
+    //    return false;
+    //}
+    #endregion
+}
