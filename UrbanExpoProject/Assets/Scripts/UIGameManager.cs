@@ -9,29 +9,40 @@ namespace UrbanExpo
 {
     public class UIGameManager : UIManager
     {
-        [Header("Additional Settings in Game")]
+        // Additional UI static events
+        public static event System.Action OnGamePause;
+        public static event System.Action OnGameResume;
+
+        [Header("Additional UI in Game")]
         [SerializeField] private RectTransform optionSettingPanel = null;
         [SerializeField] private RectTransform gamePanel = null;
 
         [Header("Button Settings")]
         [SerializeField] private BindingButton[] bindingButtons = null;
 
-        [Header("Public Debugger Information")]
-        [BoxGroup("DEBUG"), SerializeField] private TextMeshProUGUI gridDisplay = null;
+        [Header("Others")]
+        [InfoBox("This content template used for loading data from any interaction calls")]
+        [SerializeField] private UIInteractionContent uiContentTemplate = null;
 
+        [BoxGroup("DEBUG"), SerializeField] private UIGameProfiler profiler = null;
         [Header("Private Debugger Information")]
         [BoxGroup("DEBUG"), SerializeField, ReadOnly] private Button recentButtonHit = null;
         [BoxGroup("DEBUG"), SerializeField, ReadOnly] private bool isKeyBinding = false;
+        [BoxGroup("DEBUG"), SerializeField, ReadOnly] private bool isPause = false;
 
         #region Properties
         public bool IsConfiguring
         {
             set
             {
-                optionSettingPanel.gameObject.SetActive(value);
-                gamePanel.gameObject.SetActive(!value);
+                //optionSettingPanel.gameObject.SetActive(value);
+                //gamePanel.gameObject.SetActive(!value);
+                if (value == isPause) return;
+
+                isPause = value;
+                PauseGame(value);
             }
-            get => optionSettingPanel.gameObject.activeSelf;
+            get => isPause; // optionSettingPanel.gameObject.activeSelf;
         }
         #endregion
 
@@ -39,7 +50,8 @@ namespace UrbanExpo
         private void Awake()
         {
             // Subscribe events
-            EventHandler.EntityWalkedIntoGridEvent += HandleDisplayCurrentGrid;
+            EventHandler.OnEntityWalkedIntoGridEvent += HandleDisplayCurrentGrid;
+            EventHandler.OnEntityEnterAreaEvent += HandleDisplayCurrentArea;
         }
 
         private void Start()
@@ -50,6 +62,26 @@ namespace UrbanExpo
 
         private void Update()
         {
+            // Check enter and leave the UI configuration settings menu, or the other definition pause the game.
+            if (inputHandler.Data.openSettings && !isKeyBinding) IsConfiguring = !IsConfiguring;
+
+            // UI debugger update 
+            if (profiler.gameObject.activeSelf)
+            {
+                Vector3 mouseWorldPos = inputHandler.Data.mousePosInWorld;
+                mouseWorldPos.z = 0f;
+                profiler.txtMouseGridInfo.text = $"Mouse On Grid Position {IslandGrid.singleton.WorldToGridPosition(mouseWorldPos)}";
+
+                bool highlightInteract = false;
+                if (inputHandler.Data.objOnMousePosition != null)
+                {
+                    IObjectInteractable interact = IslandGrid.GetInteractable(inputHandler.Data.objOnMousePosition);
+                    highlightInteract = interact != null ? true : false;
+                }
+                profiler.txtInteractionHighlightInfo.text = $"Interaction Highlight ({highlightInteract})";
+            }
+
+            // Key binding settings when its active
             if (isKeyBinding && Input.anyKeyDown)
             {
                 // Set new key bind
@@ -57,7 +89,7 @@ namespace UrbanExpo
                 SetKeyBinding(bindButton);
 
                 // Exit key binding state
-                SetActiveInteractable(true);
+                SetInteractable(true);
                 isKeyBinding = false;
             }
         }
@@ -65,17 +97,43 @@ namespace UrbanExpo
         private void OnDestroy()
         {
             // Unsubscribe events
-            EventHandler.EntityWalkedIntoGridEvent -= HandleDisplayCurrentGrid;
+            EventHandler.OnEntityWalkedIntoGridEvent -= HandleDisplayCurrentGrid;
+            EventHandler.OnEntityEnterAreaEvent -= HandleDisplayCurrentArea;
         }
         #endregion
 
         #region Event Methods
-        private void HandleDisplayCurrentGrid(EntityWalkedIntoGridEventArgs args)
+        private void HandleDisplayCurrentGrid(OnEntityWalkedIntoGridEventArgs args)
         {
             if (args.Entity is PlayerEntity)
-                gridDisplay.text = $"Current Grid Position: {args.CurrentGridPosition}";
+            {
+                PlayerEntity player = (PlayerEntity)args.Entity;
+                if (player.tag == "Main Player")
+                {
+                    profiler.txtPlayerGridInfo.text = $"Main Player Grid Position {args.CurrentGridPosition}";
+                }
+            }
+        }
+
+        private void HandleDisplayCurrentArea(OnEntityEnterAreaEventArgs args)
+        {
+            if (args.Entity is PlayerEntity)
+            {
+                PlayerEntity player = (PlayerEntity)args.Entity;
+                if (player.tag == "Main Player")
+                {
+                    string n = args.Area == null ? "None" : args.Area.areaName;
+                    profiler.txtPlayerAreaInfo.text = $"Main Player In Area ({n})";
+                }
+            }
         }
         #endregion
+
+        private void PauseGame(bool pause)
+        {
+            if (pause) OnGamePause?.Invoke();
+            else OnGameResume?.Invoke();
+        }
 
         public void BindButtonHit(Button hit)
         {
@@ -88,21 +146,13 @@ namespace UrbanExpo
             if (isKeyBinding)
             {
                 // Disable all UI interaction while key binding
-                SetActiveInteractable(false);
+                SetInteractable(false);
             }
         }
 
-        private BindingButton GetMatchBindingButton(Button button)
+        public void SetActiveIContent(bool active)
         {
-            // Check button is null
-            if (button == null) return new BindingButton();
-
-            foreach (BindingButton b in bindingButtons)
-            {
-                if (b.Button == null) continue;
-                if (b.Button.Equals(button)) return b;
-            }
-            return new BindingButton();
+            uiContentTemplate.ActivateIContent(active);
         }
 
         private void SetKeyBinding(BindingButton bindButton)
@@ -126,15 +176,28 @@ namespace UrbanExpo
             if (textMesh != null) textMesh.text = $"{map.ClickKey}";
         }
 
-        public override void SetActiveInteractable(bool active)
+        public override void SetInteractable(bool active)
         {
-            base.SetActiveInteractable(active);
+            base.SetInteractable(active);
 
             // Activate interaction on binding buttons
             foreach (BindingButton b in bindingButtons)
             {
                 if (b.Button != null) b.Button.interactable = active;
             }
+        }
+
+        private BindingButton GetMatchBindingButton(Button button)
+        {
+            // Check button is null
+            if (button == null) return new BindingButton();
+
+            foreach (BindingButton b in bindingButtons)
+            {
+                if (b.Button == null) continue;
+                if (b.Button.Equals(button)) return b;
+            }
+            return new BindingButton();
         }
     }
 

@@ -7,7 +7,7 @@ using NaughtyAttributes;
 
 namespace UrbanExpo
 {
-    public class UIManager : MonoBehaviour
+    public class UIManager : MonoBehaviour, ISettingInteractable
     {
         [Header("Settings")]
         [SerializeField] protected InputHandler inputHandler = null;
@@ -30,18 +30,18 @@ namespace UrbanExpo
             return KeyCode.None;
         }
 
-        public virtual void SetActiveInteractable(bool active)
+        public virtual void SetInteractable(bool interactable)
         {
             // Activate interaction on slider
             foreach (Slider s in slidersCollection)
             {
-                if (s != null) s.interactable = active;
+                if (s != null) s.interactable = interactable;
             }
 
             // Activate interaction on buttons
             foreach (Button b in buttonsCollection)
             {
-                if (b != null) b.interactable = active;
+                if (b != null) b.interactable = interactable;
             }
         }
     }

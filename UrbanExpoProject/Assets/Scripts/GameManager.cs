@@ -16,16 +16,18 @@ namespace UrbanExpo
         public UIGameManager uiGameManager = null;
         public SoundManager soundManager = null;
         public GameSceneManager sceneManager = null;
+        public JavascriptHook webHook = null;
 
         [Header("Others")]
         [Required("Camera controller required for local player to make camera controlable")]
         [SerializeField] private CameraController cameraController = null;
         [SerializeField] private PlayerEntity mainPlayerPrefab = null;
 
-        private PlayerEntity mainPlayer;
+        private PlayerEntity mainLocalPlayer;
 
         #region Properties
         public CameraController CameraController => cameraController;
+        public PlayerEntity MainLocalPlayer => mainLocalPlayer;
         #endregion
 
         #region Unity BuiltIn Methods
@@ -54,8 +56,9 @@ namespace UrbanExpo
 
         private void SetUpGame()
         {
-            mainPlayer = (PlayerEntity)IslandGrid.singleton.Spawn(mainPlayerPrefab);
-            mainPlayer.Content = JavascriptHook.singleton.skinData.SkinContents[JavascriptHook.singleton.SkinIndexUsed];
+            mainLocalPlayer = (PlayerEntity)IslandGrid.singleton.Spawn(mainPlayerPrefab);
+            mainLocalPlayer.Content = webHook.skinData.SkinContents[JavascriptHook.SkinIndexUsed];
+            cameraController.SetFollowTarget(mainLocalPlayer.transform);
         }
     }
 

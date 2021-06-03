@@ -17,12 +17,12 @@ namespace UrbanExpo
         [SerializeField, ShowIf("isStaticMovement")] private Vector3[] staticWorldPosition = null; 
 
         private AStar pathFinder;
+        private IObjectInteractable entityObj;
         private IEnumerator moveProcessRoutine;
         private int iterationIndex = 0;
 
         [BoxGroup("DEBUG"), SerializeField, ReadOnly] private float tempCurrentIdleTime;
         [BoxGroup("DEBUG"), SerializeField, ReadOnly] private Vector3 hookedPosition;
-        [BoxGroup("DEBUG"), SerializeField, ReadOnly] private Vector3Int targetGridCoordinate;
 
         #region Properties
         public bool IsRandomMovement => !isStaticMovement;
@@ -32,6 +32,9 @@ namespace UrbanExpo
         protected override void Start()
         {
             base.Start();
+
+            // Get all components
+            if (entityControlled is IObjectInteractable) entityObj = (IObjectInteractable)entityControlled;
 
             // Fix initial attribute values
             pathFinder = new AStar(IslandGrid.singleton, () => transform.position);
@@ -66,6 +69,11 @@ namespace UrbanExpo
 
         private void HandleAIBrain()
         {
+            // Check if the AI is currently interacting
+            if (entityObj != null)
+                if (entityObj.IsBeingInteract)
+                    return;
+
             if (!IsWalking)
             {
                 tempCurrentIdleTime -= Time.deltaTime;
@@ -108,16 +116,22 @@ namespace UrbanExpo
 
         public override void StopMoveControl()
         {
+            // Check move routine is active
             if (moveProcessRoutine != null) StopCoroutine(moveProcessRoutine);
+
+            // Set this current position and walk snap to the grid coordinate
             IsWalking = false;
             targetGridCoordinate = IslandGrid.singleton.WorldToGridPosition(transform.position);
-            AIStartMove(new List<Vector3>() { targetGridCoordinate });
+            Vector3 snappedPos = IslandGrid.singleton.GridToWorldPosition(targetGridCoordinate) + IslandGrid.singleton.WorldPivotOffset3D;
+            AIStartMove(new List<Vector3>() { snappedPos });
         }
 
         private void AIStartMove(List<Vector3> paths)
         {
+            // Any existing walk routine will be stopped, AI only can handle 1 task
             if (moveProcessRoutine != null) StopCoroutine(moveProcessRoutine);
 
+            // Start movement control by AI
             moveProcessRoutine = MovementRoutine(paths);
             StartCoroutine(moveProcessRoutine);
         }
@@ -129,7 +143,6 @@ namespace UrbanExpo
 
             while (targetPaths.Count > 0)
             {
-
                 // Take and remove the first index of path way list
                 Vector3 targetPos = targetPaths[0];
                 targetPaths.RemoveAt(0);

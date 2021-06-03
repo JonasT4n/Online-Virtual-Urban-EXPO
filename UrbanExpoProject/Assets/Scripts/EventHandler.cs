@@ -6,23 +6,59 @@ namespace UrbanExpo
 {
     public static class EventHandler
     {
-        public delegate void EntityStartWalking(EntityStartWalkingEventArgs args);
-        public delegate void EntityWalkedIntoGrid(EntityWalkedIntoGridEventArgs args);
+        public delegate void OnPlayerTileSelect(OnPlayerTileSelectEventArgs args);
+        public delegate void OnEntityStartWalk(OnEntityStartWalkEventArgs args);
+        public delegate void OnEntityWalkedIntoGrid(OnEntityWalkedIntoGridEventArgs args);
+        public delegate void OnPlayerObjectInteract(OnPlayerObjectInteractEventArgs args);
+        public delegate void OnEntityEnterArea(OnEntityEnterAreaEventArgs args);
 
-        public static event EntityStartWalking EntityStartWalkingEvent;
-        public static event EntityWalkedIntoGrid EntityWalkedIntoGridEvent;
+        public static event OnPlayerTileSelect OnPlayerTileSelectEvent;
+        public static event OnEntityStartWalk OnEntityStartWalkEvent;
+        public static event OnEntityWalkedIntoGrid OnEntityWalkedIntoGridEvent;
+        public static event OnPlayerObjectInteract OnPlayerObjectInteractEvent;
+        public static event OnEntityEnterArea OnEntityEnterAreaEvent;
 
         public static void CallEvent(IEventArguments args)
         {
-            if (args is EntityStartWalkingEventArgs)
-                EntityStartWalkingEvent?.Invoke((EntityStartWalkingEventArgs)args);
-            else if (args is EntityWalkedIntoGridEventArgs)
-                EntityWalkedIntoGridEvent?.Invoke((EntityWalkedIntoGridEventArgs)args);
-
+            if (args is OnPlayerTileSelectEventArgs)
+                OnPlayerTileSelectEvent?.Invoke((OnPlayerTileSelectEventArgs)args);
+            else if (args is OnEntityStartWalkEventArgs)
+                OnEntityStartWalkEvent?.Invoke((OnEntityStartWalkEventArgs)args);
+            else if (args is OnEntityWalkedIntoGridEventArgs)
+                OnEntityWalkedIntoGridEvent?.Invoke((OnEntityWalkedIntoGridEventArgs)args);
+            else if (args is OnPlayerObjectInteractEventArgs)
+                OnPlayerObjectInteractEvent?.Invoke((OnPlayerObjectInteractEventArgs)args);
+            else if (args is OnEntityEnterAreaEventArgs)
+                OnEntityEnterAreaEvent?.Invoke((OnEntityEnterAreaEventArgs)args);
         }
     }
 
-    public class EntityStartWalkingEventArgs : IEventArguments
+    public class OnPlayerTileSelectEventArgs : IEventArguments
+    {
+        private PlayerEntity player;
+        private Vector3Int targetGrid;
+
+        #region Properties
+        public PlayerEntity Player => player;
+        public Vector3Int GrisPositionSelected
+        {
+            set
+            {
+                if (IslandGrid.singleton.FloorTilemap.GetTile(value) != null)
+                    targetGrid = value;
+            }
+            get => targetGrid;
+        }
+        #endregion
+
+        public OnPlayerTileSelectEventArgs(PlayerEntity player, Vector3Int targetGrid)
+        {
+            this.player = player;
+            this.targetGrid = targetGrid;
+        }
+    }
+
+    public class OnEntityStartWalkEventArgs : IEventArguments
     {
         private LivingEntity entity;
         private readonly Vector3Int fromGrid;
@@ -48,7 +84,7 @@ namespace UrbanExpo
         /// <param name="entity">Entity who start walking</param>
         /// <param name="fromGrid">From entity grid position</param>
         /// <param name="toGrid">Target grid position</param>
-        public EntityStartWalkingEventArgs(LivingEntity entity, Vector3Int fromGrid, Vector3Int toGrid)
+        public OnEntityStartWalkEventArgs(LivingEntity entity, Vector3Int fromGrid, Vector3Int toGrid)
         {
             this.entity = entity;
             this.fromGrid = fromGrid;
@@ -56,7 +92,7 @@ namespace UrbanExpo
         }
     }
 
-    public class EntityWalkedIntoGridEventArgs : IEventArguments
+    public class OnEntityWalkedIntoGridEventArgs : IEventArguments
     {
         private LivingEntity entity;
         private Vector3Int currentGrid;
@@ -66,10 +102,45 @@ namespace UrbanExpo
         public Vector3Int CurrentGridPosition => currentGrid;
         #endregion
 
-        public EntityWalkedIntoGridEventArgs(LivingEntity entity, Vector3Int currentGrid)
+        public OnEntityWalkedIntoGridEventArgs(LivingEntity entity, Vector3Int currentGrid)
         {
             this.entity = entity;
             this.currentGrid = currentGrid;
+        }
+    }
+
+    public class OnPlayerObjectInteractEventArgs : IEventArguments, ICancelable
+    {
+        private PlayerEntity player;
+        private IObjectInteractable interactWith;
+
+        #region Properties
+        public PlayerEntity Player => player;
+        public IObjectInteractable InteractTarget => interactWith;
+        public bool IsCancelled { get; set; } = false;
+        #endregion
+
+        public OnPlayerObjectInteractEventArgs(PlayerEntity player, IObjectInteractable interactWith)
+        {
+            this.player = player;
+            this.interactWith = interactWith;
+        }
+    }
+
+    public class OnEntityEnterAreaEventArgs : IEventArguments
+    {
+        private LivingEntity entity;
+        private IslandArea area;
+
+        #region Properties
+        public LivingEntity Entity => entity;
+        public IslandArea Area => area;
+        #endregion
+
+        public OnEntityEnterAreaEventArgs(LivingEntity entity, IslandArea area)
+        {
+            this.entity = entity;
+            this.area = area;
         }
     }
 }

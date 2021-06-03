@@ -14,10 +14,11 @@ namespace UrbanExpo
         [Header("Requirement Data Path")]
         public SoundManager soundManager = null;
         public GameSceneManager sceneManager = null;
+        public JavascriptHook webHook = null;
 
         [Header("Additional Settings in Main Menu")]
         public RectTransform customSkinSettingPanel = null;
-        [SerializeField, ShowIf("IsCustomSkinPanelExists"), Foldout("Custom Skin UI Attributes")] private InfiniteHorizontalScroller csScroller = null;
+        [SerializeField, ShowIf("IsCustomSkinPanelExists"), Foldout("Custom Skin UI Attributes")] private UIHorizontalInfiniteScroller csScroller = null;
         [SerializeField, ShowIf("IsCustomSkinPanelExists"), Foldout("Custom Skin UI Attributes")] private Image csBackground = null;
         [SerializeField, ShowIf("IsCustomSkinPanelExists"), Foldout("Custom Skin UI Attributes")] private Image csInner = null;
 
@@ -69,7 +70,7 @@ namespace UrbanExpo
                     csBackground.DOColor(new Color(0f, 0f, 0f, 0.5f), 0.35f);
                 if (csInner != null)
                     csInner.rectTransform.DOAnchorPos(Vector2.zero, 0.35f).SetEase(Ease.OutCirc);
-                csScroller.SetContents(JavascriptHook.singleton.skinData.SkinContents);
+                csScroller.SetContents(webHook.skinData.SkinContents, JavascriptHook.SkinIndexUsed);
             }
             else
             {
@@ -83,7 +84,7 @@ namespace UrbanExpo
 
         public void ConfirmSkin()
         {
-            JavascriptHook.singleton.SkinIndexUsed = csScroller.ContentIndex;
+            JavascriptHook.SkinIndexUsed = csScroller.ContentIndex;
         }
 
         public IEnumerator SetActiveAfterTween(GameObject obj, float seconds, bool active)

@@ -10,7 +10,7 @@ using NaughtyAttributes;
 namespace UrbanExpo
 {
     [RequireComponent(typeof(ScrollRect))]
-    public class InfiniteHorizontalScroller : MonoBehaviour, IDragHandler, IPointerDownHandler, IPointerUpHandler
+    public class UIHorizontalInfiniteScroller : MonoBehaviour, IDragHandler, IPointerDownHandler, IPointerUpHandler
     {
         [Header("Custom Skin Attributes")]
         [SerializeField] private float snapSpeedX = 5f;
@@ -121,10 +121,10 @@ namespace UrbanExpo
         }
         #endregion
 
-        public void SetContents(SpriteContent[] data)
+        public void SetContents(SpriteContent[] data, int selectedIndex = 0)
         {
             // Initialize content data
-            contentIndex = 0;
+            contentIndex = selectedIndex;
             contents = data;
 
             // Create initial index data by block size and content size
@@ -134,7 +134,8 @@ namespace UrbanExpo
             {
                 startContentIndex *= Mathf.CeilToInt(midStart / data.Length);
             }
-            startContentIndex -= midStart;
+            startContentIndex = startContentIndex + contentIndex - midStart;
+            startContentIndex = startContentIndex >= data.Length ? startContentIndex - data.Length : startContentIndex;
 
             // Assign image sprite into each block
             for (int i = 0; i < previewBlocks.Count; i++)

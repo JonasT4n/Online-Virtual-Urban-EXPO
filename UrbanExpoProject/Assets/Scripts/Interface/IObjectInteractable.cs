@@ -4,9 +4,13 @@ using UnityEngine;
 
 namespace UrbanExpo
 {
-    public interface IObjectInteractable
+    public interface IObjectInteractable : ISettingInteractable
     {
+        bool IsBeingInteract { get; set; }
+
         void Interact();
+        void StopInteract();
+        Vector3Int GetCoordinatePosition();
     }
 
 }

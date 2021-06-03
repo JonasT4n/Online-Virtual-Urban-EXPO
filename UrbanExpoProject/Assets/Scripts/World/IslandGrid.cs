@@ -18,7 +18,8 @@ namespace UrbanExpo
         [SerializeField] private Vector3 initialPlayerSpawnPosition = Vector3.zero;
         [SerializeField] private Vector2 worldOffsetOnGrid = Vector2.zero;
 
-        [Header("Buildings")]
+        [Header("Area & Buildings")]
+        [SerializeField] private IslandArea[] islandAreas = null;
         [SerializeField] private SpawnPoint[] spawnPoints = null;
 
         public IslandGridMap map;
@@ -70,6 +71,12 @@ namespace UrbanExpo
             singleton = this;
             map = new IslandGridMap(this);
 
+            // Fix min max of each points
+            foreach (IslandArea area in islandAreas)
+            {
+                area.FixMinMaxPoint();
+            }
+
             //Debug.Log($"Grid offset from world pos zero: {GridPivotOffset}; World Pivot Offset: {WorldPivotOffset}\n" +
             //    $"Actual result in World Pos: {GridToWorldPosition(GridPivotOffset)};" +
             //    $"\nCenter: {map.WorldCenter}");
@@ -80,6 +87,14 @@ namespace UrbanExpo
             //Debug.Log($"Sample pos: {pos}; In Grid Pos: {gridPos}; Last Pos after grid: {lastPos}");
         }
 
+        private void Update()
+        {
+            foreach (IslandArea area in islandAreas)
+            {
+                area.VisualizeAreaDebug(map);
+            }
+        }
+
         private void OnDestroy()
         {
             singleton = null;
@@ -87,9 +102,9 @@ namespace UrbanExpo
         #endregion
 
         #region Debugger
-#if UNITY_EDITOR
         public void DrawSquareGrid(Vector3Int gridCoordinate)
         {
+#if UNITY_EDITOR
             Color detectColor = IsFloorTileExists(gridCoordinate) ? Color.blue : Color.red;
             Vector3 gridOffset = GridToWorldPosition(new Vector3Int(GridPivotOffset.x, GridPivotOffset.y, 0));
             Vector3 worldPos = GridToWorldPosition(gridCoordinate) - gridOffset;
@@ -97,9 +112,19 @@ namespace UrbanExpo
             Debug.DrawLine(new Vector3(worldPos.x - 0.5f, worldPos.y), new Vector3(worldPos.x, worldPos.y - 0.25f), detectColor); // Left to Down
             Debug.DrawLine(new Vector3(worldPos.x, worldPos.y + 0.25f), new Vector3(worldPos.x + 0.5f, worldPos.y), detectColor); // Up to Right
             Debug.DrawLine(new Vector3(worldPos.x, worldPos.y - 0.25f), new Vector3(worldPos.x + 0.5f, worldPos.y), detectColor); // Down to Right
-        }
 #endif
+        }
         #endregion
+
+        public IslandArea GetAreaByGridPosition(Vector3Int gridPos)
+        {
+            foreach (IslandArea area in islandAreas)
+            {
+                if (area.IsCoordinateInArea(gridPos)) return area;
+            }
+
+            return null;
+        }
 
         public LivingEntity Spawn(LivingEntity entityPrefab)
         {
@@ -137,7 +162,7 @@ namespace UrbanExpo
         }
 
         #region Static Methods & Utilities
-        public static float ModulusFloatingPoint(float a, float b, float epsilon)
+        public static float ModulusFloatingPoint(float a, float b)
         {
             float aAbs = a < 0 ? -a : a;
             float bAbs = b < 0 ? -b : b;
@@ -153,6 +178,7 @@ namespace UrbanExpo
         public static IObjectInteractable GetInteractable(GameObject obj)
         {
             if (obj.GetComponent<InteractableBuilding>()) return obj.GetComponent<InteractableBuilding>();
+            else if (obj.GetComponent<NPCEntity>()) return obj.GetComponent<NPCEntity>();
             return null;
         }
         #endregion
@@ -236,7 +262,8 @@ namespace UrbanExpo
         private Vector2 downLeftDir; // Lower Left
 
         #region Properties
-        public Vector2 WorldCenter => centerWorld;
+        public Vector2 WorldCenter2D => centerWorld;
+        public Vector3 WorldCenter3D => centerWorld;
         #endregion
 
         public IslandGridMap(IslandGrid world)

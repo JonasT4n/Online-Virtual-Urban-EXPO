@@ -5,8 +5,8 @@ namespace UrbanExpo
 {
     public interface IEntityCommands
     {
-        void Teleport(Vector3Int gridCoordinate);
-        void MoveTo(Vector3Int targetGridCoordinate);
-        void StopMoving();
+        void CmdTeleport(Vector3Int gridCoordinate);
+        void CmdMoveTo(Vector3Int targetGridCoordinate);
+        void CmdStopMoving();
     }
 }

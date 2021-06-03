@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4314405526247678283}
   m_Layer: 8
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Main Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -46,8 +46,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 4314405526247678283}
-  renderer: {fileID: 4314405527699310706}
+  spriteRenderer: {fileID: 4314405527699310706}
   animator: {fileID: 0}
+  inCurrentArea:
+    areaName: 
+    minGridPoint: {x: 0, y: 0, z: 0}
+    maxGridPoint: {x: 0, y: 0, z: 0}
+  interactableMask:
+    serializedVersion: 2
+    m_Bits: 4129
+  interactRadius: 1
+  interactPivotOffset: {x: 0, y: 0.5, z: 0}
 --- !u!114 &4314405526247678283
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63,8 +72,8 @@ MonoBehaviour:
   entityControlled: {fileID: 0}
   currentGridPos: {x: 0, y: 0, z: 0}
   isWalking: 0
-  walkSpeed: 3.5
   targetGridCoordinate: {x: 0, y: 0, z: 0}
+  walkSpeed: 3.5
 --- !u!1 &4314405527699310704
 GameObject:
   m_ObjectHideFlags: 0
@@ -91,7 +100,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4314405527699310704}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.5, z: 4}
+  m_LocalPosition: {x: 0, y: 0.5, z: 4.26}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4314405526247678280}

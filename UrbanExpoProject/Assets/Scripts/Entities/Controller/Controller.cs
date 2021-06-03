@@ -11,6 +11,8 @@ namespace UrbanExpo
         [BoxGroup("ABSTRACT DEBUG"), SerializeField, ReadOnly] protected Vector3Int currentGridPos;
         [BoxGroup("ABSTRACT DEBUG"), SerializeField, ReadOnly] private bool isWalking = false;
 
+        [BoxGroup("ABSTRACT DEBUG"), SerializeField, ReadOnly] protected Vector3Int targetGridCoordinate;
+
         #region Properties
         public bool IsWalking { protected set => isWalking = value; get => isWalking; }
         #endregion
@@ -20,6 +22,10 @@ namespace UrbanExpo
         {
             if (entityControlled == null) entityControlled = GetComponent<LivingEntity>();
             currentGridPos = IslandGrid.singleton.WorldToGridPosition(transform.position);
+
+            // Call initial event
+            OnEntityWalkedIntoGridEventArgs eventArg = new OnEntityWalkedIntoGridEventArgs(entityControlled, currentGridPos);
+            EventHandler.CallEvent(eventArg);
         }
 
         protected virtual void FixedUpdate()
@@ -28,7 +34,7 @@ namespace UrbanExpo
             Vector3Int gridPos = IslandGrid.singleton.WorldToGridPosition(transform.position);
             if (currentGridPos != gridPos)
             {
-                EntityWalkedIntoGridEventArgs eventArg = new EntityWalkedIntoGridEventArgs(entityControlled, gridPos);
+                OnEntityWalkedIntoGridEventArgs eventArg = new OnEntityWalkedIntoGridEventArgs(entityControlled, gridPos);
                 EventHandler.CallEvent(eventArg);
             }
 

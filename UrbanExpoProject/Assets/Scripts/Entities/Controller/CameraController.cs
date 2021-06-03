@@ -21,6 +21,11 @@ namespace UrbanExpo
             currentSize = currentSize < cameraSizeRange.x ? cameraSizeRange.x : currentSize > cameraSizeRange.y ? cameraSizeRange.y : currentSize;
             virtualCamera.m_Lens.OrthographicSize = currentSize;
         }
+
+        public void SetFollowTarget(Transform target)
+        {
+            virtualCamera.m_Follow = target;
+        }
     }
 
 }

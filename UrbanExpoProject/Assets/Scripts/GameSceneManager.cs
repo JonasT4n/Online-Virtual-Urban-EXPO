@@ -41,7 +41,7 @@ namespace UrbanExpo
             // Check main menu state
             if (UIMainMenuManager.singleton != null)
             {
-                UIMainMenuManager.singleton.SetActiveInteractable(false);
+                UIMainMenuManager.singleton.SetInteractable(false);
             }
 
             StartCoroutine(LoadToSceneAsync(sceneName));
